@@ -1,9 +1,10 @@
 const std = @import("std");
-
-const example_file = "example/day1.txt";
-const input_file = "data/day1.txt";
+const util = @import("./util.zig");
 
 pub fn main(init: std.process.Init) !void {
+    const example_file = try util.example_file(1);
+    const input_file = try util.input_file(1);
+
     const io = init.io;
     const allocator = init.arena.allocator();
 
@@ -12,7 +13,7 @@ pub fn main(init: std.process.Init) !void {
     {
         std.debug.print("Reading example data from {s}\n", .{example_file});
         var example_data: std.ArrayList([]const u8) = .empty;
-        try read_lines(io, allocator, example_file, &example_data);
+        try util.read_lines(io, allocator, example_file, &example_data);
         const result = try solve_part1(example_data);
         std.debug.print("Part 1 example data: {d}\n", .{result});
         const result2 = try solve_part2(example_data);
@@ -22,26 +23,11 @@ pub fn main(init: std.process.Init) !void {
     {
         std.debug.print("Reading real data from {s}\n", .{input_file});
         var input_data: std.ArrayList([]const u8) = .empty;
-        try read_lines(io, allocator, input_file, &input_data);
+        try util.read_lines(io, allocator, input_file, &input_data);
         const result = try solve_part1(input_data);
         std.debug.print("Part 1 real data: {d}\n", .{result});
         const result2 = try solve_part2(input_data);
         std.debug.print("Part 2 real data: {d}\n", .{result2});
-    }
-}
-
-fn read_lines(io: std.Io, allocator: std.mem.Allocator, filename: []const u8, array_list: *std.ArrayList([]const u8)) !void {
-    const file = try std.Io.Dir.cwd().openFile(io, filename, .{});
-    defer file.close(io);
-
-    var file_buffer: [4096]u8 = undefined;
-    var reader = file.reader(io, &file_buffer);
-    while (try reader.interface.takeDelimiter('\n')) |line| {
-        const allocated_line = try allocator.alloc(u8, line.len);
-        for (line, 0..) |c, idx| {
-            allocated_line[idx] = c;
-        }
-        try array_list.append(allocator, allocated_line);
     }
 }
 
